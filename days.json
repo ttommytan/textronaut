@@ -1,0 +1,43 @@
+{
+  "columns": [
+    "Myself",
+    "Other"
+  ],
+  "chartData": [
+    {
+      "index": "Monday",
+      "Myself": 6600,
+      "Other": 6888
+    },
+    {
+      "index": "Tuesday",
+      "Myself": 6174,
+      "Other": 6585
+    },
+    {
+      "index": "Wednesday",
+      "Myself": 6660,
+      "Other": 6668
+    },
+    {
+      "index": "Thursday",
+      "Myself": 6413,
+      "Other": 6682
+    },
+    {
+      "index": "Friday",
+      "Myself": 6076,
+      "Other": 6174
+    },
+    {
+      "index": "Saturday",
+      "Myself": 4805,
+      "Other": 4813
+    },
+    {
+      "index": "Sunday",
+      "Myself": 5937,
+      "Other": 6212
+    }
+  ]
+}
