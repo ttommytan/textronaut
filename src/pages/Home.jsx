@@ -31,6 +31,7 @@ function Home() {
     const [dbFileName, setDbFileName] = useState('');
     const [vcfFileName, setVcfFileName] = useState('');
     const [buttonPopup, setButtonPopup] = useState(false)
+    const [seeMore, setSeeMore] = useState(true)
 
     const override = {
       display: "block",
@@ -98,7 +99,7 @@ function Home() {
           const contacts_response = await fetch("http://127.0.0.1:5000/upload/contacts", options2)
           const data = await contacts_response.json();
           if(contacts_response.ok){
-            alert("Contacts Uploaded")
+            //alert("Contacts Uploaded")
             fetchGraphData();
           }
           else{
@@ -241,8 +242,9 @@ function Home() {
             <RadarChart chartData={graphData['avg_stats_comparison']['chartData']} columns={graphData['avg_stats_comparison']['columns']}/>
           </div>
 
-          <div>
-            <Leaderboard data={graphData['leaderboard']['chartData']} nameMap={nameMap}></Leaderboard>
+          <div>  
+            <Leaderboard data={graphData['leaderboard']['chartData']} seeMore={seeMore} nameMap={nameMap}></Leaderboard>
+            <button onClick={()=>setSeeMore(!seeMore)}>{seeMore ? "See More" : "Hide"}</button>
           </div>
           
         </div>
