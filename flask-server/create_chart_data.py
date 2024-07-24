@@ -170,7 +170,6 @@ def double_text_hr(df1):
 #All texts each month
 def wordCloud(df):
     words = []
-
     for line in df['Message']:
         stop_words = set(stopwords.words('english'))
         word_tokens = word_tokenize(line)
@@ -178,7 +177,7 @@ def wordCloud(df):
             if word not in stop_words and word.isalpha():
                 words.append(word.lower())
     unwanted = ["i", "u", "pm", "ok", "am", "pm", "go", "r", "apr", "mar", "feb", "mon", "tue", "fri", "wed", "sat", "sun", "reply",
-                'yeah', 'yea', 'https', 'cuz', 'oh', 'also', 'yes', 'na', 'so', 'it', 'thu']
+                'yeah', 'yea', 'https', 'cuz', 'oh', 'also', 'yes', 'na', 'so', 'it', 'thu', 'wan']
     # Filter out unwanted words
     filtered_words = [word for word in words if word not in unwanted]
 
@@ -193,7 +192,8 @@ def wordCloud(df):
     # Sort word_list by 'value' in descending order and take only the first 100 words
     sorted_word_list = sorted(freq_map.items(), key=lambda x: x[1], reverse=True)[:75]
     word_list = [{'text': word, 'value': freq} for word, freq in sorted_word_list]
-    return word_list
+    top_five_words = word_list[:5]
+    return [word_list, top_five_words]
 
 def sentiment_analysis(df):
     sentence_sentiments = []
@@ -217,9 +217,24 @@ def sentiment_analysis(df):
     df_sentiment = df_sentiment.rdf_sentiment = df_sentiment.reset_index(drop = True) 
     return [df_sentiment, mean_sentiment]
 def sentiment_analysis_by_date(df):
+    start = time.perf_counter()
     df_sentiment_dates = df.groupby('index')['Polarity'].mean().reset_index()
-    df_sentiment_dates['RollingAvg'] = df_sentiment_dates['Polarity'].rolling(window=30).mean()
-    return df_to_json(df_sentiment_dates,"sentiment_by_date.json")
+    all_df_json = []
+    for i in range(1, 31):
+        temp_df = pd.DataFrame()
+        temp_df['index'] = df_sentiment_dates['index']
+        temp_df[f'RollingAvg{i}'] = df_sentiment_dates['Polarity'].rolling(window=i).mean()
+        all_df_json.append(df_to_json(temp_df,"temp_df.json"))
+
+    for i in range(40, 101, 5):
+        temp_df = pd.DataFrame()
+        temp_df['index'] = df_sentiment_dates['index']
+        temp_df[f'RollingAvg{i}'] = df_sentiment_dates['Polarity'].rolling(window=i).mean()
+        all_df_json.append(df_to_json(temp_df,"temp_df.json"))
+    end = time.perf_counter()
+    elapsed = end - start
+    print(f'a lot of rolling avgs took: {elapsed:.6f} seconds')
+    return all_df_json
 def monthly_texts (df):
     df = df[~df['Number'].str.contains('chat', na=False)]
     myself = df[df['From_Me'] == 1]
@@ -503,7 +518,62 @@ def avg_stat_comparison(df, names):
             return final_data
 
 
+def recap_stats(df, is_name, top5):
+    numbers = pd.DataFrame()
+    if is_name:
+        numbers = df.groupby(['Name','Rounded']).count()
+    else:
+        numbers = df.groupby(['Number','Rounded']).count()
+    #hours.reset_index(inplace=True)
+    numbers = numbers[['Message']]
+    numbers = numbers.unstack(level='Rounded', fill_value=0)
+    numbers['total'] = numbers.sum(axis=1)
+    numbers = numbers.sort_values(by = "total", ascending = False)
+    numbers.columns = numbers.columns.droplevel()
 
+    # Sum hours 20-3
+    numbers['20-3'] = numbers.loc[:, list(range(20, 24)) + list(range(0, 4))].sum(axis=1)
+
+    # Sum hours 4-11
+    numbers['4-11'] = numbers.loc[:, range(4, 12)].sum(axis=1)
+
+    # Sum hours 12-20
+    numbers['12-20'] = numbers.loc[:, range(12, 21)].sum(axis=1)
+    columns_to_keep = ['20-3', '4-11', '12-20', '']
+
+    # Create a new DataFrame with only the columns to keep
+    numbers = numbers[columns_to_keep]
+
+    numbers.head(50)
+    total_texts = numbers[''].sum(axis = 0)
+
+    contact_num = len(numbers)
+
+    max_values = numbers.max()
+
+    # Find the corresponding index name for the greatest value in each column
+    max_indices = numbers.idxmax()
+
+    # Combine the column names, greatest values, and corresponding index names into a DataFrame
+    greatest_values = pd.DataFrame({
+        'max_value': max_values,
+        'index_name': max_indices
+    })
+
+    # Display the result
+    greatest_values.head()
+    day_time_stat = {
+        "morning": [int(greatest_values['max_value'].iloc[0]), (greatest_values['index_name'].iloc[0])],
+        "afternoon": [int(greatest_values['max_value'].iloc[1]), (greatest_values['index_name'].iloc[1])],
+        "night": [int(greatest_values['max_value'].iloc[2]), (greatest_values['index_name'].iloc[2])],
+        "number1": [int(greatest_values['max_value'].iloc[3]), (greatest_values['index_name'].iloc[3])],
+        "total_texts": int(total_texts),
+        "num_contact": int(contact_num),
+        "top5_words": top5,
+
+    }
+
+    return day_time_stat
 
 
 def clean_df(dataframe):
@@ -535,24 +605,28 @@ def create_chart_data(dataframe, names_map):
 
     if names_map:
         all['Name'] = all['Number'].map(names_map)
+    
+    myself = all[all['From_Me'] == 1]
 
     top10 = top10_texters(all,names_map)[0]
     daysofweek = timer(days_of_week_texts,all)
     monthlytexts = timer(monthly_texts,all)
-    wordcloud = timer(wordCloud,all)
+    wordcloud = timer(wordCloud,myself)
     sent = timer(sentiment_analysis,all)
     daynhour = timer(day_n_hour,all)
     avg_stats = avg_stat_comparison(all, names_map)
+    recap = recap_stats(all, names_map, wordcloud[1])
 
     all_chart_data = {
         'leaderboard': top10,
         'day_of_week_texts': daysofweek,
         'monthly_texts': monthlytexts,
-        'word_cloud' : wordcloud,
+        'word_cloud' : wordcloud[0],
         'sentiment_by_message': df_to_json(sent[0],"sentiment.json"),
         'sentiment_by_date': sentiment_analysis_by_date(sent[0]),
         'day_n_hour': daynhour,
         'avg_stats_comparison': avg_stats,
+        'recap_stats': recap,
     }
 
     directory = "json"
@@ -605,7 +679,7 @@ def create_personal_chart_data(dataframe, number):
         'emojis': emojisvar,
         'double_text': double_texts[0],
         'double_text_hr': double_texts[1],
-        'word_cloud' : wordcloud,
+        'word_cloud' : wordcloud[0],
         'sentiment_by_message': df_to_json(sent[0],"sentiment.json"),
         'sentiment_by_date': sentiment_analysis_by_date(sent[0]),
         'time_per_words': double_texts[2],
@@ -647,3 +721,11 @@ def runCharts(personal):
 #name_map = vcf_to_dict(file_path)
 #create_chart_data(df,name_map)
 #create_personal_chart_data(clean_df(db_to_csv("/Users/TommyTan/Desktop/chat.db")),"+17146566892")
+
+if __name__ == "__main__":
+    file_path = "/Users/TommyTan/Downloads/All Contacts.vcf"
+    name_map = vcf_to_dict(file_path)
+    df = (clean_df(db_to_csv("/Users/TommyTan/Desktop/chat.db")))
+    #recap_stats(df,name_map)
+    create_chart_data(df,name_map)
+    #create_personal_chart_data(clean_df(db_to_csv("/Users/TommyTan/Desktop/chat.db")),"+17146566892")

@@ -17,7 +17,8 @@ import BubbleChart from '../components/BubbleChart';
 import RadarChart from '../components/RadarChart';
 import Popup from '../components/Popup';
 import HashLoader from "react-spinners/HashLoader";
-
+import SliderComponent from '../components/SliderComponent';
+import LineChartSlider from '../components/LineChartSlider';
 //for the problem of having to analyze twice when theres a vcf upload, just run it twice
 function Home() {
     const fileInput = createRef();
@@ -30,7 +31,7 @@ function Home() {
     const [nameMap, setNameMap] = useState(false)
     const [dbFileName, setDbFileName] = useState('');
     const [vcfFileName, setVcfFileName] = useState('');
-    const [buttonPopup, setButtonPopup] = useState(false)
+    const [buttonPopup, setButtonPopup] = useState(true)
     const [seeMore, setSeeMore] = useState(true)
 
     const override = {
@@ -38,22 +39,47 @@ function Home() {
       margin: "5 auto",
       borderColor: "red",
     };
+    let morning = ['',''];
+    let afternoon = ['',''];;
+    let night = ['',''];;
+    let number1 = ['',''];;
+    let total_texts = null;
+    let num_contact;
+    let total_minutes;
+    let top5;
     
-
-    const overallStats = [<b>This year you ventured into the social-verse and made 9 new friends, look at you you social butterfly
-                              From sunrise to sunset you kept texting blank
-                              Your morning started with blank
-                              You siezed the day with blank
-                              You embraced the night with blank
+    if(!loading)
+    {
+      morning = graphData['recap_stats']['morning'];
+      afternoon = graphData['recap_stats']['afternoon'];
+      night = graphData['recap_stats']['night'];
+      number1 = graphData['recap_stats']['number1'];
+      total_texts = graphData['recap_stats']['total_texts'];
+      total_minutes = Math.round(total_texts/36);
+      num_contact = graphData['recap_stats']['num_contact'];
+      top5 = (
+        <ul>
+          {graphData['recap_stats']['top5_words'].map((word, index) => (
+            <li key={index}>{word.text}: {word.value}</li>
+          ))}
+        </ul>
+      );
+    }
+    const overallStats = [<b className='slide-content'>This year you ventured into the social-verse and made {num_contact} new friends, look at you you social butterfly
+                              From sunrise to sunset you kept texting {number1[1]}
+                              Your morning started with {morning[1]}<br></br>
+                              You seized the day with {afternoon[1]}<br></br>
+                              You embraced the night with {night[1]}<br></br>
                           </b>, 
-                          <b>
-                          All that texting added up to around 20,000 minutes!<br/>
-                          With one person it was love at first text: Kara!<br/>
-                          You texted over 200 people but you texted these people again and again.: 1, 2, 3,...<br/>
-                      
+                          <b className='slide-content'>
+                          All that texting added up to {total_texts} which is around {total_minutes} minutes!<br/>
+                          With one person it was love at first text: {number1[1]}!<br/>
+                          You texted over {num_contact} people but you texted these people again and again: <br/>
+                          <Leaderboard data={loading ? "" : graphData['leaderboard']['chartData']} length={5} seeMore={seeMore} nameMap={nameMap}></Leaderboard>
                           </b>,
-                          <b>
-                            You also used 2000 words but your top 5 favorite words are ...<br/>
+                          
+                          <b className='slide-content'>  
+                            You also used {total_texts} words but your top 5 favorite words are {top5} <br/>
                             Peak texting months
                             Time to meet your texting personality.<br/>
                           </b>];
@@ -100,11 +126,11 @@ function Home() {
           const data = await contacts_response.json();
           if(contacts_response.ok){
             //alert("Contacts Uploaded")
-            fetchGraphData();
+            //fetchGraphData();
           }
           else{
             console.error("An error has occurred.")
-            setAnalyzeLoader(false)
+            //setAnalyzeLoader(false)
           }
         }
         const response = await fetch("http://127.0.0.1:5000/upload", options)
@@ -197,11 +223,8 @@ function Home() {
 
           </form>
 
-        <button  onClick={() => setButtonPopup(true)}>Open Your Text Recap</button>
-        <Popup trigger={buttonPopup} setTrigger={setButtonPopup} statsIndex={statsIndex} setStatsIndex={setStatsIndex} length={overallStats.length}>
-          {overallStats[statsIndex]}
-        </Popup>
-        <div></div>
+
+        
       </>
       )
     }
@@ -209,13 +232,11 @@ function Home() {
       
       <>
         <Heading title="Textualize"/>
-        <Popup trigger={buttonPopup} setTrigger={setButtonPopup} statsIndex={statsIndex} setStatsIndex={setStatsIndex} length={overallStats.length}>
-          {overallStats[statsIndex]}
+        <Popup trigger={buttonPopup} className="text-recap-container" setTrigger={setButtonPopup} statsIndex={statsIndex} setStatsIndex={setStatsIndex} length={overallStats.length}>
+          {<SliderComponent className="text-recap" slides={overallStats}/>}
         </Popup>
         <button onClick={() => setButtonPopup(true)}>Open Your Text Recap</button>
-        <Popup trigger={buttonPopup} setTrigger={setButtonPopup} statsIndex={statsIndex} setStatsIndex={setStatsIndex} length={overallStats.length}>
-          {overallStats[statsIndex]}
-        </Popup>
+
 
         <div className="container-charts">
           <div className="chart-wrapper">

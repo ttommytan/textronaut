@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Text } from '@visx/text';
 import { scaleLog } from '@visx/scale';
 import Wordcloud from '@visx/wordcloud/lib/Wordcloud';
 
-
 const colors = ['#143059', '#2F6B9A', '#82a6c2'];
-
-
 
 function getRotationDegree() {
   const rand = Math.random();
@@ -15,12 +12,13 @@ function getRotationDegree() {
 }
 
 const WordCloud = ({ width, height, showControls, wordList }) => {
-
-  if(!wordList){
+  if (!wordList) {
     return <h3>loading ...</h3>
   }
 
   const [words, setWords] = useState([]);
+  const [tooltipData, setTooltipData] = useState(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const wordFreqs = wordList;
@@ -33,14 +31,26 @@ const WordCloud = ({ width, height, showControls, wordList }) => {
   });
 
   const fontSizeSetter = (datum) => fontScale(datum.value);
-
   const fixedValueGenerator = () => 0.5;
 
   const [spiralType, setSpiralType] = useState('archimedean');
   const [withRotation, setWithRotation] = useState(false);
 
+  const handleMouseMove = useCallback((event, datum) => {
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const x = event.clientX - containerRect.left + 10; // 10px offset from cursor
+      const y = event.clientY - containerRect.top + 10; // 10px offset from cursor
+      setTooltipData({ x, y, text: datum.text, value: datum.value });
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipData(null);
+  }, []);
+
   return (
-    <div className="wordcloud">
+    <div className="wordcloud" ref={containerRef}>
       <Wordcloud
         words={words}
         width={width}
@@ -61,12 +71,32 @@ const WordCloud = ({ width, height, showControls, wordList }) => {
               transform={`translate(${w.x}, ${w.y}) rotate(${w.rotate})`}
               fontSize={w.size}
               fontFamily={w.font}
+              onMouseMove={(event) => handleMouseMove(event, w)}
+              onMouseLeave={handleMouseLeave}
             >
               {w.text}
             </Text>
           ))
         }
       </Wordcloud>
+      {tooltipData && (
+        <div
+          style={{
+            position: 'absolute',
+            top: `${tooltipData.y}px`,
+            left: `${tooltipData.x}px`,
+            backgroundColor: 'white',
+            color: 'black',
+            padding: '5px',
+            borderRadius: '5px',
+            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+            fontSize: '14px',
+            pointerEvents: 'none',
+          }}
+        >
+          {`${tooltipData.text}: ${tooltipData.value} occurrences`}
+        </div>
+      )}
       {showControls && (
         <div>
           <label>
@@ -99,12 +129,12 @@ const WordCloud = ({ width, height, showControls, wordList }) => {
           display: flex;
           flex-direction: column;
           user-select: none;
+          position: relative;
         }
         .wordcloud svg {
           margin: 1rem 0;
-          cursor: pointer;
+          
         }
-
         .wordcloud label {
           display: inline-flex;
           align-items: center;

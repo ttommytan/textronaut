@@ -35,10 +35,10 @@ if not os.path.exists("csv"):
 
 @app.route("/", methods=["GET"])
 def process():
-    #json_file = "/Users/TommyTan/react-app/json/all_chart_data.json"
+    #json_file = "/Users/TommyTan/react-app/all_chart_data.json"
     #with open(json_file, 'r') as f:
-     #   data = json.load(f)
-      #  return jsonify(data)    
+        #data = json.load(f)
+        #return jsonify(data)    
     try:
         names_map = current_app.config.get('NAMES')
         df = current_app.config.get('DATAFRAME')

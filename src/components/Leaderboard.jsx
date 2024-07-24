@@ -1,6 +1,6 @@
 
 
-const Leaderboard = ({ data, nameMap, seeMore }) => {
+const Leaderboard = ({ data, nameMap, seeMore, length }) => {
   const totalMessages = data.reduce((sum, item) => sum + item.messages, 0);
   /*
   const handlePhoneClick = async () => {
@@ -22,7 +22,8 @@ const Leaderboard = ({ data, nameMap, seeMore }) => {
   return (
     <div className="leaderboard">
       <h2>Text Message Leaderboard</h2>
-      {data.slice(0, seeMore ? 10 : data.length ).map((item, index) => {
+      
+      {data.slice(0, length ? length :seeMore ? 10 : data.length ).map((item, index) => {
         const percentage = (item.messages / totalMessages) * 100;
         const isFirstPlace = index === 0;
         return (
