@@ -81,6 +81,7 @@ def upload_files():
             contacts_path = os.path.join(app.config['UPLOAD_FOLDER'], contacts_file.filename)
             contacts_file.save(contacts_path)
             dict = vcf_to_dict(contacts_path)
+            os.remove(contacts_path)
             current_app.config['NAMES'] = dict
             response["contacts_message"] = "Contacts file successfully processed"
         else:
@@ -97,6 +98,7 @@ def upload_files():
             messages_file.save(messages_path)
             df = db_to_csv(messages_path)
             cleaned = clean_df(df)
+            os.remove(messages_path)
             current_app.config['DATAFRAME'] = cleaned
             response["messages_message"] = "Messages file successfully processed"
         else:
