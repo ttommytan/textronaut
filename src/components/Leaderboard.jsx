@@ -1,6 +1,6 @@
 
 
-const Leaderboard = ({ data, nameMap, seeMore, length }) => {
+const Leaderboard = ({ data, nameMap, width, link }) => {
   const totalMessages = data.reduce((sum, item) => sum + item.messages, 0);
   /*
   const handlePhoneClick = async () => {
@@ -21,29 +21,58 @@ const Leaderboard = ({ data, nameMap, seeMore, length }) => {
   */
   return (
     <div className="leaderboard">
-      <h2>Text Message Leaderboard</h2>
       
-      {data.slice(0, length ? length :seeMore ? 10 : data.length ).map((item, index) => {
+      <div className="leaderboard-list">
+      {data.map((item, index) => {
         const percentage = (item.messages / totalMessages) * 100;
         const isFirstPlace = index === 0;
         return (
-          <div key={item.index} className={`leaderboard-item ${isFirstPlace ? 'first-place' : ''}`}>
+          <div
+            key={item.index}
+            className={`leaderboard-item ${isFirstPlace ? "first-place" : ""}`}
+          >
             <div className="rank">{index + 1}</div>
-            <a href={`/phone-number/${item.index}`}className="phone-number">{nameMap ? item.name : item.index}</a>
-            <div className="progress-bar-container">
-              <div 
-                className="progress-bar" 
-                style={{width: `${percentage}%`}}
+            {link ? (
+              <a
+                href={`/phone-number/${item.index}`}
+                target="_blank"
+                className="phone-number"
+              >
+                {nameMap ? item.name : item.index}
+              </a>
+            ) : (
+              <span
+                href={`/phone-number/${item.index}`}
+                target="_blank"
+                className="phone-number"
+              >
+                {nameMap ? item.name : item.index}
+              </span>
+            )}
+
+            <div className={width < 1276 ? "progress-bar-container" : "hidden"}>
+              <div
+                className="progress-bar"
+                style={{ width: `${percentage}%` }}
               ></div>
             </div>
-            <div className="message-count">{item.messages}</div>
+
+            <div className="message-count">
+              {item.messages.toLocaleString()}
+            </div>
             <div className="percentage">{percentage.toFixed(2)}%</div>
-            {isFirstPlace && <div className="crown">👑</div>}
           </div>
         );
       })}
+      </div>
     </div>
   );
 };
 
 export default Leaderboard;
+
+/*
+
+
+            {isFirstPlace && <div className="crown">👑</div>}
+            */

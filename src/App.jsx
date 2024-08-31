@@ -11,6 +11,7 @@ import { Bubble, Line } from 'react-chartjs-2';
 import Home from './pages/Home';
 import PhoneNumber from './pages/PhoneNumbers';
 import NoPage from './pages/NoPage';
+import Sample from './pages/Sample';
 import BubbleChart from './components/BubbleChart';
 import ScatterPlot from './components/ScatterPlot';
 import Scats from './components/Scats';
@@ -125,18 +126,19 @@ function App() {
 
 
 function App() {
-  return(
-  <>
-
-    <BrowserRouter>
-      <Routes>
-        <Route index element={<Home></Home>}></Route>
-        <Route path='/home' element ={<Home></Home>} />
-        <Route path="/phone-number/:number" element={<PhoneNumber />} />
-        <Route path='*' element ={<NoPage/>} />
-      </Routes>
-    </BrowserRouter>
-  </>)
+  return (
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<Home></Home>}></Route>
+          <Route path="/home" element={<Home></Home>} />
+          <Route path="/phone-number/:number" element={<PhoneNumber />} />
+          <Route path="/sample" element={<Sample></Sample>} />
+          <Route path="*" element={<NoPage />} />
+        </Routes>
+      </BrowserRouter>
+    </>
+  );
 }
 export default App
 

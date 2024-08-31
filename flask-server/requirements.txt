@@ -1,0 +1,12 @@
+Flask
+flask-cors
+pandas
+matplotlib
+Pillow
+numpy
+textblob
+nltk
+scikit-learn
+emoji
+plistlib
+vobject

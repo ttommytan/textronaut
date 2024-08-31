@@ -6,16 +6,17 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const DoughnutChart = ({ chartData, columns, nameMap }) => {
+const DoughnutChart = ({ chartData, columns, nameMap, legend }) => {
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0 || !columns || !Array.isArray(columns)) {
     return <div>Loading chart data or invalid input...</div>;
   }
   let labels = chartData.map((data) => data.index);
-  if (nameMap)
-  {
-    labels = chartData.map((data) => data.name);
-  }
+  
+  //if (nameMap)
+  //{
+    //labels = chartData.map((data) => data.name);
+  //}
 
 
   
@@ -38,8 +39,8 @@ const DoughnutChart = ({ chartData, columns, nameMap }) => {
   const options = {
     plugins: {
       legend: {
-        display: true,
-        position: 'right',
+        display: legend,
+        position: 'top',
         labels: {
           filter: function(legendItem, data) {
             return legendItem.index < 5;
